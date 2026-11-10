@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bangla Natok to English Dubbing</title>
+<style>
+body{margin:0;background:#1a0b2e;color:white;font-family:sans-serif;text-align:center;padding:15px}
+video{width:100%;border-radius:15px;background:black}
+select,textarea,button{width:100%;padding:14px;margin-top:10px;border-radius:12px;font-size:16px;border:none}
+select{background:#ffcc00;font-weight:bold}
+button{background:#00c853;color:white;font-weight:bold;font-size:18px}
+</style>
+</head>
+<body>
+<h1 style="color:#ffcc00">🎬 Bangla Natok ➜ English Dubbing</h1>
+<p id="status" style="background:#333;padding:10px;border-radius:10px">Video Upload Koren</p>
+
+<input type="file" id="vidInput" accept="video/*" style="background:white;padding:12px;border-radius:12px;width:92%">
+<video id="myVideo" controls playsinline></video>
+
+<p>👥 কয়জন কথা বলে?</p>
+<select id="speakerCount">
+<option value="2">2 জন</option>
+<option value="3">3 জন</option>
+<option value="4">4 জন</option>
+<option value="5">অনেক জন</option>
+</select>
+
+<p>✍️ নাটকের কথা - এক লাইনে একেক জনের কথা</p>
+<textarea id="txt">I love you so much.
+Why did you leave me?
+Please forgive me, I am back.
+I cannot live without you.</textarea>
+
+<button onclick="testVoice()" style="background:#FF9800">🔊 TEST VOICE</button>
+<button onclick="startDub()">▶️ PLAY + ENGLISH DUBBING</button>
+<button onclick="stopAll()" style="background:#ff3b3b">⏹️ THAMAO</button>
+
+<script>
+let video=document.getElementById('myVideo');
+let currentAudio=null, stopped=false;
+function setStatus(t){ document.getElementById('status').innerText=t; }
+
+document.getElementById('vidInput').addEventListener('change', function(e){
+let f=e.target.files[0];
+if(!f) return;
+video.src=URL.createObjectURL(f);
+video.load();
+setStatus('✅ Video Ready!');
+});
+
+function playGoogleVoice(text, speed, callback){
+if(currentAudio){ try{currentAudio.pause();}catch(e){} }
+let url='https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q='+encodeURIComponent(text);
+let a=new Audio(url);
+currentAudio=a;
+a.playbackRate=speed;
+a.onended=function(){ if(callback) callback(); };
+a.onerror=function(){ if(callback) callback(); };
+a.play().catch(function(){ if(callback) callback(); });
+}
+
+function testVoice(){
+setStatus('🔊 Test Voice Bajche...');
+playGoogleVoice('Hello, this is English dubbing test. Can you hear me?', 1, function(){
+setStatus('✅ Test Ses! Ekhon PLAY chap den');
+});
+}
+
+function startDub(){
+if(!video.src){ alert('Age video upload koren!'); return; }
+stopped=false;
+video.currentTime=0;
+video.muted=true;
+video.play();
+let count=parseInt(document.getElementById('speakerCount').value);
+let lines=document.getElementById('txt').value.split('\n').filter(function(l){return l.trim()!=''});
+let i=0;
+let speeds=[0.9, 1.1, 1.0, 0.85, 1.15];
+function next(){
+if(stopped) return;
+if(i>=lines.length){ setStatus('✅ Dubbing Ses!'); return; }
+let line=lines[i].trim();
+setStatus('🔊 Dubbing: '+(i+1)+'/'+lines.length+' - '+line);
+let sp=speeds[i%count];
+playGoogleVoice(line, sp, function(){ i++; setTimeout(next, 400); });
+}
+setTimeout(next,500);
+setStatus('🔊 English Dubbing Cholche... Volume Baran');
+}
+function stopAll(){
+stopped=true;
+if(currentAudio) currentAudio.pause();
+video.pause();
+setStatus('⏹️ Thamano Hoyeche');
+}
+</script>
+</body>
+</html>
